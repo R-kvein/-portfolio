@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .agent import build_agent, run_one
@@ -43,6 +44,12 @@ def usecase(req: Req):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+# 托管前端 Demo:浏览器访问 / 直接看 UI
+_WEB_DIR = Path(__file__).parent.parent / "web"
+if _WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")
 
 
 def _load_corpus() -> list[str]:

@@ -1,5 +1,8 @@
 """FastAPI 包装。LangGraph 编译出的 app 直接 invoke 即可。"""
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .graph import build_graph
@@ -22,6 +25,11 @@ def analyze(req: Req):
 
 @app.get("/health")
 def health(): return {"status": "ok"}
+
+
+_WEB_DIR = Path(__file__).parent.parent / "web"
+if _WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")
 
 
 if __name__ == "__main__":

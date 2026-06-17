@@ -6,6 +6,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from .infer import predict
 from .viz import draw_detections
@@ -37,6 +38,11 @@ async def detect_viz(file: UploadFile = File(...)):
 
 @app.get("/health")
 def health(): return {"status": "ok"}
+
+
+_WEB_DIR = Path(__file__).parent.parent / "web"
+if _WEB_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(_WEB_DIR), html=True), name="web")
 
 
 if __name__ == "__main__":

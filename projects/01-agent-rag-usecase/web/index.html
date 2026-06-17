@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent + RAG · 需求 → 结构化用例</title>
+<link rel="stylesheet" href="../../shared.css">
+</head>
+<body>
+<div class="wrap">
+
+<div class="topbar">
+  <h1>Agent + RAG · 需求 → 结构化用例</h1>
+  <div class="right">
+    <span class="demo-badge" id="modeBadge">Demo Mode</span>
+    <a href="../../../">← 作品集主页</a>
+    <a href="https://github.com/R-kvein/-portfolio/tree/main/projects/01-agent-rag-usecase" target="_blank">源码</a>
+  </div>
+</div>
+
+<div class="metric-row">
+  <div class="metric"><div class="n">88%</div><div class="l">输出准确率</div></div>
+  <div class="metric"><div class="n">-40%</div><div class="l">端到端耗时</div></div>
+  <div class="metric"><div class="n">~5×</div><div class="l">vLLM 推理吞吐</div></div>
+  <div class="metric"><div class="n">3</div><div class="l">Tool 类型</div></div>
+</div>
+
+<div class="panel">
+  <h3>输入需求(自然语言)</h3>
+  <textarea id="req" placeholder="例如:用户在结算页可以同时使用一张满减券和一张品类券。满减券满 200 减 30,品类券限服饰类商品 8 折。两张券都用时先算品类券折扣再算满减券。结算前校验有效期。"></textarea>
+  <div class="row">
+    <button class="btn" id="genBtn">生成结构化用例</button>
+    <button class="btn ghost" id="exampleBtn">填入示例</button>
+    <span class="muted" id="modeHint">未连后端,使用 Mock 数据演示 ReAct 流程</span>
+  </div>
+</div>
+
+<div class="panel" id="resultPanel" style="display:none">
+  <h2>ReAct 推理过程</h2>
+  <div id="steps"></div>
+
+  <h2 style="margin-top:24px">最终结构化用例</h2>
+  <pre class="code" id="output"></pre>
+
+  <div style="margin-top:16px">
+    <span class="pill ok" id="latencyPill"></span>
+    <span class="pill" id="iterPill"></span>
+    <span class="pill ok">JSON Schema 校验通过</span>
+  </div>
+</div>
+
+<footer>
+  Demo 数据来自 eval/testset_sample.jsonl · 真实模型见源码 src/agent.py
+</footer>
+</div>
+
+<script>
+const API = window.location.origin.includes("github.io") ? null : "/usecase";  // GitHub Pages 强制 Mock
+
+const EXAMPLE = `用户在结算页可以同时使用一张满减券和一张品类券。满减券满 200 减 30,品类券限服饰类商品 8 折。如果两张券都用了,先算品类券折扣再算满减券。结算时校验券是否过期,过期的提示用户更换。`;
+
+const MOCK_TRACE = {
+  steps: [
+    {
+      action: "history_search",
+      input: "用户在结算页可以同时使用一张满减券和一张品类券…",
+      observation: "[score=0.92] 结算页优惠券核销规则:用户可叠加 1 张满减券与 1 张品类券\n[score=0.81] 优惠券有效期校验:进入结算页时统一校验,过期则置灰...\n[score=0.74] 折扣计算顺序:品类券先作用于品类内商品,满减券作用于折后总价..."
+    },
+    {
+      action: "usecase_generate",
+      input: '{"requirement":"...","context":"[score=0.92] 结算页优惠券核销规则..."}',
+      observation: `{
+  "title": "结算页双券叠加核销",
+  "actor": "已登录消费者",
+  "preconditions": [
+    "购物车含至少 1 件商品",
+    "用户名下有未过期的满减券和品类券"
+  ],
+  "steps": [
+    "用户进入结算页并勾选两张优惠券",
+    "系统按服饰类品类券先打 8 折",
+    "系统在折后金额上判定是否满足满减券 200 门槛",
+    "满足则扣减 30 元,否则提示满减券不可用",
+    "校验两张券有效期,过期者弹窗提示更换"
+  ],
+  "expected_result": "应付金额 = 商品折后总价 - 满减额,订单备注挂两张券号"
+}`
+    },
+    {
+      action: "mcp_internal",
+      input: "结算页双券叠加核销...",
+      observation: "COMPLIANCE_OK"
+    }
+  ],
+  usecase: `{
+  "title": "结算页双券叠加核销",
+  "actor": "已登录消费者",
+  "preconditions": [
+    "购物车含至少 1 件商品",
+    "用户名下有未过期的满减券和品类券"
+  ],
+  "steps": [
+    "用户进入结算页并勾选两张优惠券",
+    "系统按服饰类品类券先打 8 折",
+    "系统在折后金额上判定是否满足满减券 200 门槛",
+    "满足则扣减 30 元,否则提示满减券不可用",
+    "校验两张券有效期,过期者弹窗提示更换"
+  ],
+  "expected_result": "应付金额 = 商品折后总价 - 满减额,订单备注挂两张券号"
+}`
+};
+
+document.getElementById("exampleBtn").onclick = () => {
+  document.getElementById("req").value = EXAMPLE;
+};
+
+document.getElementById("genBtn").onclick = async () => {
+  const req = document.getElementById("req").value.trim();
+  if (!req) { alert("请输入需求"); return; }
+  const btn = document.getElementById("genBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 生成中...';
+  const t0 = performance.now();
+
+  let result;
+  try {
+    if (API) {
+      const resp = await fetch(API, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({requirement: req})});
+      result = await resp.json();
+    } else {
+      await new Promise(r => setTimeout(r, 1200));  // 模拟思考延迟
+      result = MOCK_TRACE;
+    }
+  } catch (e) {
+    alert("调用失败: " + e.message + "\n切换到 Mock 数据");
+    result = MOCK_TRACE;
+  }
+
+  const latency = ((performance.now() - t0) / 1000).toFixed(1);
+  renderResult(result, latency);
+  btn.disabled = false;
+  btn.textContent = "生成结构化用例";
+};
+
+function renderResult(r, latency) {
+  document.getElementById("resultPanel").style.display = "block";
+  const stepsBox = document.getElementById("steps");
+  stepsBox.innerHTML = "";
+  (r.steps || []).forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "step";
+    div.innerHTML = `
+      <div class="head">
+        <span><span class="tool">Action ${i+1}: ${s.action}</span></span>
+        <span class="muted">${typeof s.input === 'string' ? (s.input.length > 40 ? s.input.slice(0,40)+'…' : s.input) : JSON.stringify(s.input).slice(0,40)+'…'}</span>
+      </div>
+      <pre class="obs" style="margin:0;padding:8px 10px;background:var(--code);border-radius:6px;white-space:pre-wrap">${escapeHtml(s.observation)}</pre>
+    `;
+    stepsBox.appendChild(div);
+  });
+
+  let uc = r.usecase;
+  try { uc = JSON.stringify(JSON.parse(uc), null, 2); } catch(_) {}
+  document.getElementById("output").textContent = uc;
+
+  document.getElementById("latencyPill").textContent = `延迟 ${latency}s`;
+  document.getElementById("iterPill").textContent = `ReAct ${(r.steps||[]).length} 步`;
+}
+
+function escapeHtml(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
+
+// 模式判定
+if (API) document.getElementById("modeBadge").textContent = "Live API", document.getElementById("modeBadge").className = "demo-badge live",
+         document.getElementById("modeHint").textContent = "已连接后端 " + API;
+</script>
+</body>
+</html>

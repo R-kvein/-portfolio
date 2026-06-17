@@ -1,0 +1,63 @@
+:root{
+  --bg:#0b0d12; --panel:#13161d; --panel2:#1a1e27; --line:#262b36;
+  --text:#e6e8ee; --mute:#8a90a0; --accent:#7cc4ff; --accent2:#9eff9a;
+  --warn:#ffb86b; --code:#0f1117; --danger:#ff7a7a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 0 28px;border-bottom:1px solid var(--line);margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.topbar h1{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.topbar .right{display:flex;gap:14px;align-items:center;font-size:13px}
+.demo-badge{background:#0e2419;border:1px solid #1f4029;color:var(--accent2);padding:4px 10px;border-radius:999px;font-size:12px;font-weight:500}
+.demo-badge.live{background:#0e2436;border-color:#264a66;color:var(--accent)}
+
+.muted{color:var(--mute);font-size:14px}
+h2{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:14px;font-weight:600}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:20px}
+.panel h3{font-size:16px;margin-bottom:14px}
+
+textarea, input[type=text]{
+  width:100%;background:var(--code);border:1px solid var(--line);border-radius:8px;color:var(--text);
+  font-family:inherit;font-size:14px;padding:14px;resize:vertical;outline:none;transition:border .15s
+}
+textarea:focus, input[type=text]:focus{border-color:var(--accent)}
+textarea{min-height:120px}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#0b0d12;
+  font-weight:600;font-size:14px;padding:10px 20px;border:0;border-radius:8px;cursor:pointer;transition:transform .08s
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+
+pre.code{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:14px 16px;
+  overflow-x:auto;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:#c4cad6;white-space:pre-wrap;word-break:break-word}
+
+.step{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.step .head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.step .tool{color:var(--accent);font-weight:600}
+.step .obs{color:var(--mute);font-size:12.5px;font-family:"SF Mono",Menlo,monospace}
+
+.metric-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.metric .n{font-size:20px;font-weight:700;color:var(--accent2);letter-spacing:-.01em}
+.metric .l{font-size:11px;color:var(--mute);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--mute);margin-right:6px}
+.pill.ok{color:var(--accent2);border-color:#1f4029;background:#0e2419}
+.pill.warn{color:var(--warn);border-color:#4a3520;background:#241e10}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #0b0d12;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.cite{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin:0 2px;font-size:11px;color:var(--accent);cursor:pointer}
+.cite:hover{background:#0e2436}
+
+footer{text-align:center;color:var(--mute);font-size:12px;padding:24px 0;border-top:1px solid var(--line);margin-top:32px}
