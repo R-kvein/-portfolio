@@ -1,0 +1,46 @@
+# LLaMA-Factory LoRA 微调配置 — Qwen2.5-7B-Instruct
+# 训练数据：领域内"需求-用例"成对样本，约 2k 条
+# 单卡 24GB（RTX 4090）即可跑通
+
+### 模型
+model_name_or_path: Qwen/Qwen2.5-7B-Instruct
+trust_remote_code: true
+
+### 方法
+stage: sft                 # Supervised Fine-Tuning
+do_train: true
+finetuning_type: lora
+lora_target: q_proj,k_proj,v_proj,o_proj  # 注意力 4 个投影矩阵
+lora_rank: 8               # 实验过 4/8/16，8 是精度/显存最优解
+lora_alpha: 16             # 一般 = 2 * rank
+lora_dropout: 0.05
+
+### 数据
+dataset: usecase_sft       # 在 data/dataset_info.json 注册
+dataset_dir: ./finetune/data
+template: qwen
+cutoff_len: 2048
+max_samples: 2200
+overwrite_cache: true
+preprocessing_num_workers: 4
+
+### 训练
+output_dir: ./finetune/output/lora
+logging_steps: 10
+save_steps: 200
+plot_loss: true
+overwrite_output_dir: true
+
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8        # 有效 batch = 16
+learning_rate: 1.0e-4                 # LoRA 经验值 1e-4 ~ 5e-4
+num_train_epochs: 3                   # 太多易过拟合；早停看 val loss
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true                            # A100/4090 推荐 bf16
+
+### 评估
+val_size: 0.05                        # 留 5% 做验证
+per_device_eval_batch_size: 2
+evaluation_strategy: steps
+eval_steps: 200
