@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 工程作品集 — LangChain · RAG · LoRA</title>
+<style>
+:root{
+  --bg:#0b0d12; --panel:#13161d; --panel2:#1a1e27; --line:#262b36;
+  --text:#e6e8ee; --mute:#8a90a0; --accent:#7cc4ff; --accent2:#9eff9a;
+  --warn:#ffb86b; --code:#0f1117;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:980px;margin:0 auto;padding:48px 28px}
+
+/* Hero */
+header{padding:24px 0 40px;border-bottom:1px solid var(--line)}
+.eyebrow{color:var(--accent);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:14px}
+h1{font-size:38px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+h1 .grad{background:linear-gradient(90deg,#7cc4ff,#9eff9a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{color:var(--mute);font-size:17px;margin-top:14px;max-width:680px}
+.meta{display:flex;flex-wrap:wrap;gap:18px;margin-top:22px;font-size:14px;color:var(--mute)}
+.meta span::before{content:"·";margin-right:18px;color:var(--line)}
+.meta span:first-child::before{content:""}
+
+/* Sections */
+section{padding:48px 0;border-bottom:1px solid var(--line)}
+h2{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:24px;font-weight:600}
+h3{font-size:24px;font-weight:600;margin-bottom:8px;letter-spacing:-.01em}
+h4{font-size:15px;font-weight:600;margin:24px 0 10px;color:var(--text)}
+p{color:#c4c8d2;margin-bottom:12px}
+.muted{color:var(--mute);font-size:14px}
+
+/* Project card */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px;margin-bottom:24px}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line);color:var(--mute);margin-right:6px;margin-bottom:6px}
+.pill.hot{color:var(--accent);border-color:#264a66;background:#0e2436}
+.pill.win{color:var(--accent2);border-color:#1f4029;background:#0e2419}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:22px 0}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:16px}
+.metric .num{font-size:26px;font-weight:700;color:var(--accent2);letter-spacing:-.02em}
+.metric .num.alt{color:var(--accent)}
+.metric .lbl{font-size:12px;color:var(--mute);margin-top:4px}
+
+/* Architecture diagram */
+.diagram{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:20px;margin:18px 0;overflow-x:auto}
+.diagram pre{font-family:"SF Mono","Menlo",Consolas,monospace;font-size:12.5px;line-height:1.55;color:#a8b1c2;white-space:pre}
+
+/* Code block */
+pre.code{background:var(--code);border:1px solid var(--line);border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;font-family:"SF Mono","Menlo",Consolas,monospace;font-size:12.5px;line-height:1.6;color:#c4cad6}
+.code .kw{color:#ff8baf}
+.code .str{color:#9eff9a}
+.code .com{color:#5d6577;font-style:italic}
+.code .fn{color:#7cc4ff}
+.code .num2{color:#ffb86b}
+
+/* Stack */
+.stack{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.stack .item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stack .item .k{font-size:12px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.stack .item .v{font-size:14px;color:var(--text)}
+
+/* Bullet list with custom marker */
+ul.lst{list-style:none;margin:8px 0 4px}
+ul.lst li{padding-left:20px;position:relative;margin-bottom:8px;color:#c4c8d2;font-size:14.5px}
+ul.lst li::before{content:"▸";position:absolute;left:0;color:var(--accent)}
+
+/* Q&A */
+details{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin-bottom:10px}
+details summary{cursor:pointer;font-weight:600;font-size:14.5px;color:var(--text);outline:none}
+details[open] summary{margin-bottom:10px;color:var(--accent)}
+details p{font-size:14px;color:#c4c8d2}
+
+/* Footer */
+footer{padding:36px 0;color:var(--mute);font-size:13px;text-align:center}
+
+@media (max-width:640px){
+  h1{font-size:30px}
+  .wrap{padding:32px 18px}
+  section{padding:36px 0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">AI Engineer · Agent / RAG / LLM Ops</div>
+  <h1>把大模型能力变成<span class="grad">能干活的产品</span></h1>
+  <p class="tag">面向真实业务场景的 LLM Agent 与 RAG 系统工程实践：从数据治理 → 模型微调 → 推理部署 → 智能体编排的完整闭环。</p>
+  <div class="meta">
+    <span>LangChain / LangGraph</span>
+    <span>RAG + Chroma / FAISS</span>
+    <span>Qwen2.5 + LoRA</span>
+    <span>vLLM · FastAPI</span>
+  </div>
+</header>
+
+<!-- ============== PROJECT 1 ============== -->
+<section id="p1">
+  <h2>Featured Project · 01</h2>
+  <div class="card">
+    <div class="top">
+      <div>
+        <h3>智能 Agent 系统:自然语言需求 → 结构化执行用例</h3>
+        <p class="muted">个人主导 · LangChain + LangGraph + LoRA-Qwen2.5 + vLLM</p>
+      </div>
+      <div>
+        <span class="pill win">准确率 60% → 88%</span>
+        <span class="pill win">耗时 -40%</span>
+      </div>
+    </div>
+
+    <p style="margin-top:16px">业务人员用自然语言写的需求文档,过去要人工拆解成可执行用例,平均一份耗时 25 分钟、易遗漏。系统用 ReAct 范式的 Agent 自动检索历史相似用例(RAG)、按场景调用工具链、输出结构化结果,把端到端耗时压到约 15 分钟。</p>
+
+    <div class="metrics">
+      <div class="metric"><div class="num">88<span style="font-size:18px">%</span></div><div class="lbl">输出准确率（vs 优化前 60%）</div></div>
+      <div class="metric"><div class="num">40<span style="font-size:18px">%</span></div><div class="lbl">端到端耗时缩短</div></div>
+      <div class="metric"><div class="num alt">3</div><div class="lbl">Tool 类型(RAG/生成/MCP)</div></div>
+      <div class="metric"><div class="num alt">2k+</div><div class="lbl">LoRA 微调样本</div></div>
+    </div>
+
+    <h4>系统架构</h4>
+    <div class="diagram"><pre>
+       自然语言需求
+            │
+            ▼
+   ┌────────────────────────────────┐
+   │  Agent 引擎 (LangChain · ReAct) │
+   │  Thought → Action → Observation │◄──┐
+   └────────────────┬───────────────┘   │ 循环直到生成
+                    │ Tool Calling       │
+        ┌───────────┼───────────┐        │
+        ▼           ▼           ▼        │
+   ┌─────────┐ ┌─────────┐ ┌─────────┐  │
+   │ RAG检索  │ │ 用例生成 │ │ MCP工具 │──┘
+   │ Chroma  │ │  LLM    │ │ Server  │
+   │ +Rerank │ │         │ │         │
+   └────┬────┘ └─────────┘ └─────────┘
+        │
+        ▼ 召回 Top-K 历史相似用例 (混合检索 BM25 + 向量)
+            │
+            ▼
+   ┌────────────────────────────────┐
+   │  LoRA-Qwen2.5 (vLLM 推理)       │
+   │  生成结构化用例 (JSON Schema)   │
+   └────────────────┬───────────────┘
+                    ▼
+              FastAPI / 前端</pre></div>
+
+    <h4>关键决策与对应技术</h4>
+    <ul class="lst">
+      <li><b>为什么用 Agent 而不是单次 prompt</b> — 需求转用例需要"先检索相似历史 + 分步推理",一次性 prompt 易遗漏和幻觉;ReAct 循环可分步、按需调工具、基于真实检索结果生成,更准更可控。</li>
+      <li><b>RAG 60%→88% 怎么做到的</b> — 调 chunk size(400→600 字 + 100 字 overlap)→ 召回率 +12 pt;BM25 + 向量混合检索 → +8 pt;Cross-Encoder Rerank Top-20→Top-3 → +5 pt;Few-shot prompt → +3 pt。控变量在固定 80 条测试集上测的。</li>
+      <li><b>为什么用 LoRA 不全量微调</b> — Qwen2.5-7B 全量需 4×A100、且易过拟合;LoRA r=8 单卡 24GB 跑通,产出 50MB 适配器可热插拔,效果接近全量。</li>
+      <li><b>为什么用 vLLM</b> — PagedAttention 显存利用率高、并发吞吐比 transformers 原生快 ~5×,生产服务必选。</li>
+    </ul>
+
+    <h4>核心代码 · ReAct Agent 工具注册</h4>
+<pre class="code"><span class="com"># tools.py · 三类工具按 Tool Calling 协议暴露给 Agent</span>
+<span class="kw">from</span> langchain.agents <span class="kw">import</span> Tool
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> Chroma
+
+retriever = Chroma(persist_directory=<span class="str">"./vec"</span>, embedding_function=emb).as_retriever(
+    search_kwargs={<span class="str">"k"</span>: <span class="num2">20</span>}        <span class="com"># 先召回 Top-20，下游 rerank 到 Top-3</span>
+)
+
+<span class="kw">def</span> <span class="fn">rag_search</span>(query: <span class="kw">str</span>) -> <span class="kw">str</span>:
+    docs = retriever.get_relevant_documents(query)
+    reranked = cross_encoder.rerank(query, docs, top_n=<span class="num2">3</span>)
+    <span class="kw">return</span> <span class="str">"\n---\n"</span>.join(d.page_content <span class="kw">for</span> d <span class="kw">in</span> reranked)
+
+tools = [
+    Tool(<span class="str">"history_search"</span>, rag_search,
+         <span class="str">"检索历史相似需求和已有用例。当用户需求涉及已有模块/术语时优先调用。入参=完整需求描述。"</span>),
+    Tool(<span class="str">"usecase_generate"</span>, gen_usecase,
+         <span class="str">"基于已检索的上下文生成结构化用例 JSON。仅在已有充分历史参考后调用。"</span>),
+    Tool(<span class="str">"mcp_internal"</span>, call_mcp,
+         <span class="str">"调用内部 MCP Server(术语库/合规规则)。当输出需要校验术语合规时调用。"</span>),
+]
+agent = create_react_agent(llm=qwen_via_vllm, tools=tools, prompt=react_prompt)</pre>
+
+    <h4>数据驱动迭代</h4>
+    <p>用 Pandas 统计每周失败 case 的特征分布,发现 60% 的错误集中在"需求含模糊词时模型乱猜"——在 prompt 中加"遇到模糊点先列假设/反问"后,该类错误率从 38% 降到 9%。这条闭环把"指标 → 失败聚类 → 工具/prompt 改动 → 再验证"做成了每周例行的 A/B。</p>
+
+    <div style="margin-top:18px">
+      <span class="pill hot">LangChain</span><span class="pill hot">LangGraph</span><span class="pill hot">ReAct</span>
+      <span class="pill hot">Chroma</span><span class="pill hot">BM25 混合检索</span><span class="pill hot">Cross-Encoder Rerank</span>
+      <span class="pill hot">LLaMA-Factory</span><span class="pill hot">LoRA</span><span class="pill hot">Qwen2.5-7B</span>
+      <span class="pill hot">vLLM</span><span class="pill hot">FastAPI</span><span class="pill hot">MCP</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PROJECT 2 ============== -->
+<section id="p2">
+  <h2>Featured Project · 02</h2>
+  <div class="card">
+    <div class="top">
+      <div>
+        <h3>RAG + Agent 智能分析与推理引擎</h3>
+        <p class="muted">团队项目 · 负责 RAG 检索链路 + LangGraph 编排 · 用户 20+</p>
+      </div>
+      <div><span class="pill win">分析准确率 +26%</span></div>
+    </div>
+
+    <p style="margin-top:16px">非结构化问题描述定位慢——历史记录术语不统一、日志散落多源、判断依赖经验。系统把"语义解析 → 向量检索 → 上下文组装 → LLM 推理 → 建议生成"编排成 LangGraph 状态图,带分支与异常兜底,把分析准确率提升 26%。</p>
+
+    <h4>LangGraph 状态图编排</h4>
+    <div class="diagram"><pre>
+       ┌─────────────────────┐
+       │  ① 语义解析(意图+实体) │
+       └──────────┬──────────┘
+                  │
+                  ▼
+       ┌─────────────────────┐    召回为空
+       │  ② 向量检索(历史+日志) │────────────┐
+       └──────────┬──────────┘            │
+                  │ 命中                   ▼
+                  ▼                ┌──────────────┐
+       ┌─────────────────────┐    │ 兜底:请用户   │
+       │  ③ 上下文组装(去噪+压缩)│    │ 补充关键信息  │
+       └──────────┬──────────┘    └──────────────┘
+                  │
+                  ▼
+       ┌─────────────────────┐    LLM 超时/失败
+       │  ④ LLM 推理 + 建议生成 │────────────┐
+       └──────────┬──────────┘            │
+                  │                        ▼
+                  ▼                ┌──────────────┐
+              结构化建议           │ 重试 + 降级:   │
+                                  │ 返回检索原文   │
+                                  └──────────────┘</pre></div>
+
+    <h4>5 大业务痛点 → 工具集映射</h4>
+    <ul class="lst">
+      <li>历史记录术语不统一 → 同义词归一化工具(基于业务词典 + Embedding 相似度回退)</li>
+      <li>跨系统日志格式异构 → 日志结构化抽取(LLM Function Call,统一 schema)</li>
+      <li>相似 case 高频复现 → 高频 case 缓存层(命中直接返回经验解)</li>
+      <li>建议过于宽泛 → 强制按"原因 / 证据 / 建议步骤"三段式输出</li>
+      <li>用户无法回溯依据 → 每条结论挂检索原文 citation,可点击展开</li>
+    </ul>
+
+    <h4>我具体负责</h4>
+    <ul class="lst">
+      <li>RAG 检索子图:Embedding 选型(bge-large-zh)、Chroma 持久化、混合检索权重调优</li>
+      <li>LangGraph 状态机:节点定义、条件边、异常兜底分支</li>
+      <li>20+ 用户使用手册 + 培训,每周收集反馈做 case 复盘和提示词迭代</li>
+    </ul>
+
+    <div style="margin-top:18px">
+      <span class="pill hot">LangGraph</span><span class="pill hot">RAG</span>
+      <span class="pill hot">Chroma</span><span class="pill hot">bge-large-zh</span>
+      <span class="pill hot">FastAPI</span><span class="pill hot">Pandas</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PROJECT 3 ============== -->
+<section id="p3">
+  <h2>Project · 03</h2>
+  <div class="card">
+    <div class="top">
+      <div>
+        <h3>YOLOv8 图像识别与可视化平台</h3>
+        <p class="muted">数据标注 → 训练调优 → Web 推理服务全流程</p>
+      </div>
+      <div><span class="pill win">mAP@0.5 ≈ 0.83</span></div>
+    </div>
+    <p style="margin-top:16px">labelImg 标注 → 训练/验证集划分 → YOLOv8 训练 → 超参调优(学习率 / epoch / batch) → 验证集看 mAP → FastAPI 推理服务 → 前端上传图片可视化框选 + 历史记录。</p>
+    <div style="margin-top:16px">
+      <span class="pill hot">YOLOv8</span><span class="pill hot">labelImg</span>
+      <span class="pill hot">PyTorch</span><span class="pill hot">FastAPI</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============== STACK ============== -->
+<section>
+  <h2>Tech Stack</h2>
+  <div class="stack">
+    <div class="item"><div class="k">LLM / Agent</div><div class="v">LangChain · LangGraph · ReAct · Tool Calling · MCP</div></div>
+    <div class="item"><div class="k">RAG</div><div class="v">Chroma · FAISS · BM25 混合检索 · Cross-Encoder Rerank · bge-large-zh</div></div>
+    <div class="item"><div class="k">微调</div><div class="v">LLaMA-Factory · LoRA / QLoRA · Qwen2.5-7B</div></div>
+    <div class="item"><div class="k">推理部署</div><div class="v">vLLM · Ollama · FastAPI · Docker</div></div>
+    <div class="item"><div class="k">数据 / 工程</div><div class="v">Pandas · Matplotlib · PyTorch · Linux · Git · CI/CD 基础</div></div>
+    <div class="item"><div class="k">CV</div><div class="v">YOLOv8 · labelImg</div></div>
+  </div>
+</section>
+
+<!-- ============== Q&A 自检 ============== -->
+<section>
+  <h2>常见追问 · 我的回答</h2>
+
+  <details>
+    <summary>为什么用 LoRA 而不是全量微调?</summary>
+    <p>全量微调 Qwen2.5-7B 需要 4×A100,显存和成本极高、还容易过拟合和灾难性遗忘。LoRA 只训练外挂的两个低秩矩阵(我用 r=8、α=16),24GB 单卡就能跑,产出适配器约 50MB、可热插拔。在我们这种领域单一、样本量两千多条的场景下,LoRA 效果接近全量,性价比明显更高。</p>
+  </details>
+
+  <details>
+    <summary>RAG 准确率 60% → 88% 是怎么测的?</summary>
+    <p>固定一个 80 条的测试集(真实需求-标准用例配对),优化前跑一遍记录"完全匹配 / 部分匹配 / 错误"三档,优化后同一测试集再跑。88% 指"完全匹配 + 可接受的部分匹配"之和。控制变量保证可比——只动检索/Prompt,不动测试集。</p>
+  </details>
+
+  <details>
+    <summary>Agent 怎么决定调用哪个 Tool?</summary>
+    <p>LangChain 把每个工具的 name + description 拼到 ReAct prompt 里,模型在 Thought 阶段根据当前任务自己选。所以"工具描述写得好不好"直接影响选对率——这也是我后期重点优化的地方:每个工具描述里写明"适用场景"和"不适用场景",并给一两个 few-shot 触发例。</p>
+  </details>
+
+  <details>
+    <summary>为什么用 LangGraph 不用简单的顺序代码?</summary>
+    <p>项目 2 的流程有分支和异常路径(检索为空走兜底、LLM 超时走降级),用 if-else 会很快变成"if 嵌套地狱"。LangGraph 的状态图把节点和条件边显式声明,可观测性强,加新分支只改图、不动主流程。代码可维护性高一个量级。</p>
+  </details>
+
+  <details>
+    <summary>怎么防止大模型幻觉?</summary>
+    <p>四层:① RAG 提供真实依据,prompt 里强制"仅基于检索内容回答";② 低 temperature(0.2);③ 结构化输出 + JSON Schema 校验,不合规自动重试;④ 对关键结论挂 citation 原文,人可回溯。</p>
+  </details>
+
+  <details>
+    <summary>项目 2 是团队项目,你具体负责哪一块?</summary>
+    <p>我负责 RAG 检索链路(Embedding 选型、Chroma 持久化、混合检索调权)和 LangGraph 状态机的节点/兜底分支设计;另外做了 20+ 用户的使用手册和培训,每周收集反馈做 case 复盘。LLM 微调和前端是另一位同学主导,我了解他们的工作但不会硬讲细节。</p>
+  </details>
+</section>
+
+<footer>
+  Built with vanilla HTML/CSS · No frameworks · Last updated 2026-06
+</footer>
+
+</div>
+</body>
+</html>
